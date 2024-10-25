@@ -1,6 +1,6 @@
 import express from 'express';
 import { createRecipe, deleteRecipe, getAllRecipes, getRecipeById, updateRecipe } from '../Controllers/RecipeController.js';
-import { upload } from '../Config/cloudinary.js'; // Cloudinary upload
+import { upload } from '../config/cloudinary.js'; // Cloudinary upload
 
 const router = express.Router();
 
