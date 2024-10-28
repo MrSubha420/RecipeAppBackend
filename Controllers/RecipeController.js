@@ -1,21 +1,26 @@
 import Recipe from '../Models/RecipeSchema.js';
-import { cloudinary, upload } from '../config/cloudinary.js'; // Cloudinary upload
+import { cloudinary, upload } from '../config/cloudinary.js'; // Cloudinary configuration
 
-//1:  Create Recipe with image upload
+// Create Recipe
 export const createRecipe = async (req, res) => {
    try {
       const { name, ingredients, instructions, cookingTime } = req.body;
 
-      // Cloudinary file URL (uploaded automatically)
+      // Check if required fields are present
+      if (!name || !ingredients || !instructions || !cookingTime) {
+         return res.status(400).json({ message: 'All fields are required' });
+      }
+
+      // Cloudinary image URL if uploaded
       const imageUrl = req.file ? req.file.path : null;
 
       // Create new recipe
       const newRecipe = await Recipe.create({
          name,
-         ingredients: ingredients.split(','), // Assumes ingredients are comma-separated
-         instructions : instructions.split(','),
+         ingredients: ingredients.split(','), // Assumes ingredients are comma-separated, adjust as needed
+         instructions: Array.isArray(instructions) ? instructions : instructions.split(','),
          cookingTime,
-         image: imageUrl, // Store Cloudinary image URL
+         image: imageUrl,
       });
 
       res.status(201).json({ message: 'Recipe created successfully', recipe: newRecipe });
@@ -24,7 +29,7 @@ export const createRecipe = async (req, res) => {
    }
 };
 
-//2:  Get all recipes
+// Get all recipes
 export const getAllRecipes = async (req, res) => {
    try {
       const recipes = await Recipe.find();
@@ -34,7 +39,7 @@ export const getAllRecipes = async (req, res) => {
    }
 };
 
-//3:  Get a single recipe by ID
+// Get a single recipe by ID
 export const getRecipeById = async (req, res) => {
    try {
       const { id } = req.params;
@@ -50,19 +55,20 @@ export const getRecipeById = async (req, res) => {
    }
 };
 
-//4:  Update a recipe by ID
+// Update a recipe by ID
 export const updateRecipe = async (req, res) => {
    try {
       const { id } = req.params;
       const { name, ingredients, instructions, cookingTime } = req.body;
-      const imageUrl = req.file ? req.file.path : null; // New image URL if uploaded
+      const imageUrl = req.file ? req.file.path : null;
 
+      // Find existing recipe by ID
       const recipe = await Recipe.findById(id);
       if (!recipe) {
          return res.status(404).json({ message: 'Recipe not found' });
       }
 
-      // Remove old image if a new one is uploaded
+      // Remove old image from Cloudinary if a new one is uploaded
       if (imageUrl && recipe.image) {
          const oldImagePublicId = recipe.image.split('/').pop().split('.')[0];
          await cloudinary.v2.uploader.destroy(`recipes/${oldImagePublicId}`);
@@ -71,7 +77,7 @@ export const updateRecipe = async (req, res) => {
       // Update recipe details
       recipe.name = name || recipe.name;
       recipe.ingredients = ingredients ? ingredients.split(',') : recipe.ingredients;
-      recipe.instructions = instructions || recipe.instructions;
+      recipe.instructions = instructions ? (Array.isArray(instructions) ? instructions : instructions.split(',')) : recipe.instructions;
       recipe.cookingTime = cookingTime || recipe.cookingTime;
       recipe.image = imageUrl || recipe.image;
 
@@ -82,7 +88,7 @@ export const updateRecipe = async (req, res) => {
    }
 };
 
-//5:  Delete a recipe by ID
+// Delete a recipe by ID
 export const deleteRecipe = async (req, res) => {
    try {
       const { id } = req.params;
