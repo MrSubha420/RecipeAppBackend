@@ -1,22 +1,13 @@
 import express from 'express';
 import { createRecipe, deleteRecipe, getAllRecipes, getRecipeById, updateRecipe } from '../Controllers/RecipeController.js';
-import { upload } from '../config/cloudinary.js'; // Cloudinary upload
+import { upload } from '../config/cloudinary.js';
 
 const router = express.Router();
 
-// Create new recipe with image upload
 router.post('/create', upload.single('image'), createRecipe);
-
-// Get all recipes
-router.get('/gateall', getAllRecipes);
-
-// Get a single recipe by ID
-router.get('/singleRecipe/:id', getRecipeById);
-
-// Update a recipe
+router.get('/all', getAllRecipes); // Adjusted from 'gateall' to 'all' for clarity
+router.get('/:id', getRecipeById);
 router.put('/update/:id', upload.single('image'), updateRecipe);
-
-// Delete a recipe
 router.delete('/delete/:id', deleteRecipe);
 
 export default router;
